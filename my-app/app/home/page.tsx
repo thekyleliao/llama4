@@ -1,8 +1,5 @@
 import { FC } from 'react';
-import CameraInput from '../web-input/camera';
-import AudioInput from '../web-input/microphone';
-import TextInput from '../web-input/text';
-
+import Link from 'next/link';
 
 // Types for our week data
 interface WeekData {
@@ -78,6 +75,14 @@ export default function Home() {
           {weekData.map((week) => (
             <WeekCard key={week.weekNumber} {...week} />
           ))}
+        </div>
+        <div className="text-center mt-8">
+          <Link 
+            href="/main" 
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            Create New Report →
+          </Link>
         </div>
       </div>
     </div>
