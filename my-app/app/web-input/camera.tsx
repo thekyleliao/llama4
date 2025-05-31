@@ -16,7 +16,7 @@ const CameraInput: React.FC = () => {
                 video: true,
             })
             
-            // Set the media stream to state and assign it to the video element
+            // Set the media stream and set is video active to true
             setStream(mediaStream);
             setIsVideoActive(true);
             if (videoRef.current) {
