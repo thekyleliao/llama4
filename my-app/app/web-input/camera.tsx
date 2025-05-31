@@ -7,6 +7,7 @@ const CameraInput: React.FC = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [isVideoActive, setIsVideoActive] = useState(false);
+    const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
     // Function to start the camera
     const startCamera = async () => {
@@ -19,6 +20,7 @@ const CameraInput: React.FC = () => {
             // Set the media stream and set is video active to true
             setStream(mediaStream);
             setIsVideoActive(true);
+            setCapturedImage(null); // Reset captured image when starting camera
             if (videoRef.current) {
                 videoRef.current.srcObject = mediaStream;
             } 
@@ -35,23 +37,76 @@ const CameraInput: React.FC = () => {
             const videoTracks = stream.getVideoTracks();
             videoTracks.forEach(track => track.stop());
             setIsVideoActive(false);
+            setCapturedImage(null); // Reset captured image when stopping camera
             if (videoRef.current) {
                 videoRef.current.srcObject = null;
             }
         }
     }
 
+    const takePicture = () => {
+        if (videoRef.current) {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoRef.current.videoWidth;
+            canvas.height = videoRef.current.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            if (ctx) {
+                ctx.drawImage(videoRef.current, 0, 0);
+                const imageData = canvas.toDataURL('image/jpeg');
+                setCapturedImage(imageData);
+                // Stop the video stream after capturing
+                if (stream) {
+                    const videoTracks = stream.getVideoTracks();
+                    videoTracks.forEach(track => track.stop());
+                }
+            }
+        }
+    }
+
     return (
-    // Render the camera input component and buttons to start/stop the camera
-    <div>
-        <video ref={videoRef} autoPlay/>
-            {!isVideoActive ? (
-                <button onClick={startCamera}>Start Camera</button>
-            ) : (
-                <button onClick={stopCamera}>Stop Camera Only</button>
-            )}
-            {isVideoActive && <p>Camera is active</p>}
-    </div>
+        <div className="flex flex-col items-center space-y-4">
+            <div className="relative w-full max-w-2xl aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                {!capturedImage ? (
+                    <video 
+                        ref={videoRef} 
+                        autoPlay 
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <img 
+                        src={capturedImage} 
+                        alt="Captured" 
+                        className="w-full h-full object-cover"
+                    />
+                )}
+            </div>
+            
+            <div className="flex space-x-4">
+                {!isVideoActive && !capturedImage ? (
+                    <button 
+                        onClick={startCamera}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+                    >
+                        Start Camera
+                    </button>
+                ) : isVideoActive && !capturedImage ? (
+                    <button 
+                        onClick={takePicture}
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+                    >
+                        Take Photo
+                    </button>
+                ) : (
+                    <button 
+                        onClick={stopCamera}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+                    >
+                        Stop Camera
+                    </button>
+                )}
+            </div>
+        </div>
     );
 }
 
