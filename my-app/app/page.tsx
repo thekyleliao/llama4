@@ -1,4 +1,7 @@
 import { FC } from 'react';
+import CameraInput from './web-input/camera';
+import AudioInput from './web-input/microphone';
+import TextInput from './web-input/text';
 
 // Types for our week data
 interface WeekData {
@@ -69,7 +72,15 @@ export default function Home() {
         <h1 className="text-3xl font-bold text-gray-900 text-center mb-8">
           Educational Progress Tracker
         </h1>
-        
+        <div className="text-3xl font-bold text-gray-900 text-center mb-8">
+          <CameraInput/>
+        </div>
+        <div className="text-3xl font-bold text-gray-900 text-center mb-8">
+          <AudioInput/>
+        </div>
+        <div className="text-3xl font-bold text-gray-900 text-center mb-8">
+          <TextInput/>
+        </div>
         <div className="space-y-6">
           {weekData.map((week) => (
             <WeekCard key={week.weekNumber} {...week} />
