@@ -64,6 +64,37 @@ const CameraInput: React.FC = () => {
         }
     }
 
+    const handleUpload = async () => {
+        if (!capturedImage) return;
+
+        try {
+            // Convert base64 to blob
+            const response = await fetch(capturedImage);
+            const blob = await response.blob();
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('photo', blob, 'captured-photo.jpg');
+
+            // Send to your API endpoint
+            const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error('Upload failed');
+            }
+
+            // Handle successful upload
+            console.log('Photo uploaded successfully');
+            // You can add additional success handling here
+        } catch (error) {
+            console.error('Error uploading photo:', error);
+            // You can add error handling UI feedback here
+        }
+    }
+
     return (
         <div className="flex flex-col items-center space-y-4">
             <div className="relative w-full max-w-2xl aspect-video bg-gray-900 rounded-lg overflow-hidden">
@@ -98,12 +129,20 @@ const CameraInput: React.FC = () => {
                         Take Photo
                     </button>
                 ) : (
-                    <button 
-                        onClick={stopCamera}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
-                    >
-                        Stop Camera
-                    </button>
+                    <div className="flex space-x-4">
+                        <button 
+                            onClick={handleUpload}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Upload Photo
+                        </button>
+                        <button 
+                            onClick={stopCamera}
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Stop Camera
+                        </button>
+                    </div>
                 )}
             </div>
         </div>
