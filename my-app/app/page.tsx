@@ -1,9 +1,4 @@
-import { FC } from 'react';
 import Link from 'next/link';
-import CameraInput from './web-input/camera';
-import AudioInput from './web-input/microphone';
-import TextInput from './web-input/text';
-
 
 export default function LandingPage() {
   return (
