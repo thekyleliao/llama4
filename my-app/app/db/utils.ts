@@ -5,10 +5,12 @@ import { createClient as createBrowserClient } from './client'
 export async function uploadToSupabase(file: Blob, fileName: string, bucket: string = 'reports') {
   const supabase = await createClient()
   
+  const contentType = file.type || 'image/jpeg'
+
   const { data, error } = await supabase.storage
     .from(bucket)
     .upload(fileName, file, {
-      contentType: 'image/jpeg',
+      contentType: contentType,
       upsert: false
     })
 
@@ -26,10 +28,12 @@ export async function uploadToSupabase(file: Blob, fileName: string, bucket: str
 export function uploadToSupabaseClient(file: Blob, fileName: string, bucket: string = 'reports') {
   const supabase = createBrowserClient()
   
+  const contentType = file.type || 'image/jpeg'
+
   return supabase.storage
     .from(bucket)
     .upload(fileName, file, {
-      contentType: 'image/jpeg',
+      contentType: contentType,
       upsert: false
     })
 }
