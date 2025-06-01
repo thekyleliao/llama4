@@ -80,7 +80,7 @@ const CameraInput: React.FC = () => {
             const blob = await response.blob();
 
             // Upload to Supabase
-            const fileName = `assignment-${Date.now()}.jpg`;
+            const fileName = `assignment-${new Date().toISOString().replace(/[:.T]/g, '-').slice(0, -5)}.jpg`;
             const { data, error } = await uploadToSupabaseClient(blob, fileName);
 
             if (error) {

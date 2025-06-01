@@ -24,3 +24,39 @@ export async function uploadToSupabaseClient(file: Blob, fileName: string, bucke
 
   return { data, publicUrl, error: null }
 }
+
+// Client-side download file from Supabase storage function
+export async function getFilesFromSupabase(bucket: string = 'reports') {
+  const supabase = createBrowserClient()
+  
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .list('', {
+      limit: 100,
+      sortBy: { column: 'name', order: 'asc' }
+    })
+
+  if (error) {
+    console.error('Error fetching files:', error)
+    return []
+  }
+
+  return data || []
+}
+
+// Get the Monday of the week for a given date
+export function getMondayOfWeek(date: Date): Date {
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+  return new Date(date.setDate(diff));
+}
+
+// Format date for display
+export function formatWeekTitle(mondayDate: Date): string {
+  const options: Intl.DateTimeFormatOptions = { 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+  };
+  return `Week of ${mondayDate.toLocaleDateString('en-US', options)}`;
+}

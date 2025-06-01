@@ -1,85 +1,146 @@
 'use client';
 
-import { FC } from 'react';
-// Link import was present but not used, can be removed if not needed elsewhere.
-// import Link from 'next/link'; 
+import { FC, useState, useEffect } from 'react';
 import CameraInput from '../web-input/camera';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { 
+  getFilesFromSupabase, 
+  getMondayOfWeek, 
+  formatWeekTitle 
+} from '../db/utils';
 
-// Types for our week data
+// Updated interface
 interface WeekData {
-  weekNumber: number;
+  mondayDate: Date;
+  title: string;
+  files: string[];
   subtitle: string;
-  topicStudied: string;
-  culturalNotes: string;
-  exp: number; // exp is still part of the data structure
 }
 
-// Sample data - in a real app, this would come from an API or database
-const weekData: WeekData[] = [
-  {
-    weekNumber: 1,
-    subtitle: "Introduction to Language Basics",
-    topicStudied: "Basic grammar structures and essential vocabulary for daily conversations. Focus on present tense and common expressions.",
-    culturalNotes: "Understanding cultural context and social norms in everyday interactions.",
-    exp: 150
-  },
-  {
-    weekNumber: 2,
-    subtitle: "Building Vocabulary",
-    topicStudied: "Expanding vocabulary through themed lessons. Practice with common scenarios and situations.",
-    culturalNotes: "Exploring cultural traditions and their influence on language use.",
-    exp: 200
-  },
-  {
-    weekNumber: 3,
-    subtitle: "Conversation Skills",
-    topicStudied: "Developing fluency in basic conversations. Practice with role-playing and real-world scenarios.",
-    culturalNotes: "Understanding cultural nuances in communication styles.",
-    exp: 250
+// Updated function to extract date from new filename format
+const extractDateFromFilename = (filename: string): string | null => {
+  // Updated regex to match new format: assignment-2025-06-01-03-26-16.jpg
+  const match = filename.match(/assignment-(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})/);
+  if (match) {
+    // Convert back to ISO format for Date parsing: 2025-06-01-03-26-16 -> 2025-06-01T03:26:16
+    const dateStr = match[1];
+    const [datePart, timePart] = [
+      dateStr.substring(0, 10), // 2025-06-01
+      dateStr.substring(11).replace(/-/g, ':') // 03:26:16
+    ];
+    return `${datePart}T${timePart}`;
   }
-];
+  return null;
+};
 
-// Week Card Component
-// The 'exp' prop is destructured but no longer used for display.
-// Other props like subtitle, topicStudied, culturalNotes are also destructured but not used in the provided WeekCard JSX.
-// This is fine, but you might consider removing them from destructuring if they aren't planned for use in this component.
-const WeekCard: FC<WeekData> = ({ weekNumber, subtitle, topicStudied, culturalNotes, exp }) => {
-  if (weekNumber === 3) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-blue-600">Week {weekNumber}</h2>
-          {/* EXP display removed from here */}
+// Camera Card Component
+const CameraCard: FC = () => {
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto border-2 border-blue-200">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold text-blue-600">Upload New Assignment</h2>
+        <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold text-sm">
+          📸 Camera Ready
         </div>
-        <CameraInput />
       </div>
-    );
-  }
+      <CameraInput />
+    </div>
+  );
+};
 
+// Week Card Component (simplified)
+const WeekCard: FC<WeekData> = ({ mondayDate, title, files, subtitle }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-blue-600">Week {weekNumber}</h2>
-        {/* EXP display removed from here */}
+        <h2 className="text-2xl font-bold text-blue-600">{title}</h2>
       </div>
       
-      <div className="relative w-full h-[400px]">
-        <Image
-          src={`/page${weekNumber}.jpg`}
-          alt={`Week ${weekNumber} homework`}
-          fill // Changed from layout="fill" to fill for Next.js 13+ Image component
-          className="object-contain rounded-lg"
-          priority={weekNumber === 1} // Example: only prioritize the first image, adjust as needed
-        />
-      </div>
+      <h3 className="text-xl font-semibold text-gray-800 mb-3">{subtitle}</h3>
+      
+      {/* Display assignment files */}
+      {files.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-lg font-medium text-gray-700 mb-2">Assignments ({files.length})</h4>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {files.slice(0, 6).map((filename, index) => (
+              <div key={filename} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                <Image
+                  src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/reports/${filename}`}
+                  alt={`Assignment ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  unoptimized // Add this temporarily
+                  onError={(e) => {
+                    console.error('Image failed to load:', filename);
+                    console.error('Full URL:', `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/reports/${filename}`);
+                    // Hide broken image
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            ))}
+            {files.length > 6 && (
+              <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-600 text-sm">+{files.length - 6} more</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default function Home() {
   const router = useRouter();
+  const [weekData, setWeekData] = useState<WeekData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadWeeksFromSupabase();
+  }, []);
+
+  const loadWeeksFromSupabase = async () => {
+    try {
+      const files = await getFilesFromSupabase();
+      
+      // Group files by week
+      const weekMap = new Map<string, { files: string[], mondayDate: Date }>();
+      
+      files.forEach(file => {
+        const date = extractDateFromFilename(file.name);
+        if (date) {
+          const monday = getMondayOfWeek(new Date(date));
+          const mondayKey = monday.toISOString().split('T')[0]; // Use date as key
+          
+          if (!weekMap.has(mondayKey)) {
+            weekMap.set(mondayKey, { files: [], mondayDate: monday });
+          }
+          
+          weekMap.get(mondayKey)!.files.push(file.name);
+        }
+      });
+
+      // Convert to WeekData array
+      const weeks: WeekData[] = Array.from(weekMap.entries()).map(([key, data]) => ({
+        mondayDate: data.mondayDate,
+        title: formatWeekTitle(data.mondayDate),
+        files: data.files,
+        subtitle: `${data.files.length} Assignment${data.files.length !== 1 ? 's' : ''} Submitted`
+      }));
+
+      // Sort by date (most recent first)
+      weeks.sort((a, b) => b.mondayDate.getTime() - a.mondayDate.getTime());
+
+      setWeekData(weeks);
+    } catch (error) {
+      console.error('Error loading weeks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCreateReport = async () => {
     try {
@@ -87,22 +148,26 @@ export default function Home() {
       const data = await response.json();
       console.log('Vision API response:', data);
       
-      // Ensure we have the expected data structure
       if (!data.report_in_english || !data.report_in_spanish || !data.follow_up_questions) {
-        console.error('Missing required data fields:', data);
-        // Optionally, provide user feedback here (e.g., an alert or a toast message)
-        return;
+        throw new Error('Invalid API response structure');
       }
 
-      const encodedData = encodeURIComponent(JSON.stringify(data));
-      console.log('Encoded data for URL:', encodedData);
-      
-      router.push(`/report?data=${encodedData}`);
+      router.push('/report');
     } catch (error) {
       console.error('Error fetching vision data:', error);
-      // Optionally, provide user feedback here
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -111,11 +176,23 @@ export default function Home() {
           Educational Progress
         </h1>
         
-        <div className="space-y-6">
-          {weekData.map((week) => (
-            <WeekCard key={week.weekNumber} {...week} />
-          ))}
-        </div>
+        {/* Camera Card - Always visible at top */}
+        <CameraCard />
+        
+        {/* Week Data Cards */}
+        {weekData.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg mb-6">No assignments uploaded yet.</p>
+            <p className="text-gray-500">Start by uploading your first assignment using the camera above!</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {weekData.map((week) => (
+              <WeekCard key={week.mondayDate.toISOString()} {...week} />
+            ))}
+          </div>
+        )}
+        
         <div className="text-center mt-8">
           <button 
             onClick={handleCreateReport}
