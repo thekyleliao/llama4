@@ -7,7 +7,7 @@ import TextInput from './web-input/text';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       {/* Hero Section */}
       <div className="relative h-screen">
         {/* Hero Image */}
@@ -22,12 +22,13 @@ export default function LandingPage() {
 
         {/* Hero Content */}
         <div className="relative h-full flex flex-col items-center justify-center text-center px-4 sm:px-6 lg:px-8 z-10">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
-            informe
-          </h1>
-          <p className="text-xl sm:text-2xl text-gray-200 mb-8 max-w-3xl">
-            classroom tool for teachers to keep immigrant parents informed about their children's education
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-8 px-4 sm:px-8 md:px-16">
+            Parent Bridge
+            </h1>
+          <p className="text-m sm:text-2xl text-gray-200 mb-8 max-w-3xl">
+            AI to transform student assignments into personalized, bilingual progress reports that help parents understand exactly how their child is learning and how to support them at home. 
           </p>
+          <p className ="text-m sm:text-2xl text-gray-200 mb-8 max-w-3xl">Breaking down language barriers in education, one assignment at a time - connecting families to their child's academic journey in the language they speak best.</p>
           
           {/* CTA Button */}
           <Link 

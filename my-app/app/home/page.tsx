@@ -1,9 +1,11 @@
 'use client';
 
 import { FC } from 'react';
-import Link from 'next/link';
+// Link import was present but not used, can be removed if not needed elsewhere.
+// import Link from 'next/link'; 
 import CameraInput from '../web-input/camera';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 // Types for our week data
 interface WeekData {
@@ -11,7 +13,7 @@ interface WeekData {
   subtitle: string;
   topicStudied: string;
   culturalNotes: string;
-  exp: number;
+  exp: number; // exp is still part of the data structure
 }
 
 // Sample data - in a real app, this would come from an API or database
@@ -40,15 +42,16 @@ const weekData: WeekData[] = [
 ];
 
 // Week Card Component
+// The 'exp' prop is destructured but no longer used for display.
+// Other props like subtitle, topicStudied, culturalNotes are also destructured but not used in the provided WeekCard JSX.
+// This is fine, but you might consider removing them from destructuring if they aren't planned for use in this component.
 const WeekCard: FC<WeekData> = ({ weekNumber, subtitle, topicStudied, culturalNotes, exp }) => {
   if (weekNumber === 3) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-blue-600">Week {weekNumber}</h2>
-          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">
-            {exp} EXP
-          </div>
+          {/* EXP display removed from here */}
         </div>
         <CameraInput />
       </div>
@@ -59,23 +62,17 @@ const WeekCard: FC<WeekData> = ({ weekNumber, subtitle, topicStudied, culturalNo
     <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-blue-600">Week {weekNumber}</h2>
-        <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">
-          {exp} EXP
-        </div>
+        {/* EXP display removed from here */}
       </div>
       
-      <h3 className="text-xl font-semibold text-gray-800 mb-3">{subtitle}</h3>
-      
-      <div className="space-y-4">
-        <div>
-          <h4 className="text-lg font-medium text-gray-700 mb-2">Topic Studied</h4>
-          <p className="text-gray-600">{topicStudied}</p>
-        </div>
-        
-        <div>
-          <h4 className="text-lg font-medium text-gray-700 mb-2">Cultural Notes</h4>
-          <p className="text-gray-600">{culturalNotes}</p>
-        </div>
+      <div className="relative w-full h-[400px]">
+        <Image
+          src={`/page${weekNumber}.jpg`}
+          alt={`Week ${weekNumber} homework`}
+          fill // Changed from layout="fill" to fill for Next.js 13+ Image component
+          className="object-contain rounded-lg"
+          priority={weekNumber === 1} // Example: only prioritize the first image, adjust as needed
+        />
       </div>
     </div>
   );
@@ -93,6 +90,7 @@ export default function Home() {
       // Ensure we have the expected data structure
       if (!data.report_in_english || !data.report_in_spanish || !data.follow_up_questions) {
         console.error('Missing required data fields:', data);
+        // Optionally, provide user feedback here (e.g., an alert or a toast message)
         return;
       }
 
@@ -102,6 +100,7 @@ export default function Home() {
       router.push(`/report?data=${encodedData}`);
     } catch (error) {
       console.error('Error fetching vision data:', error);
+      // Optionally, provide user feedback here
     }
   };
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect } from 'react'; // Added React for React.Fragment
 import { useSearchParams } from 'next/navigation';
 
 const ReportPage: FC = () => {
@@ -36,8 +36,21 @@ const ReportPage: FC = () => {
         }, 0);
         window.onafterprint = () => {
             setIsPrinting(false);
-            window.onafterprint = null;
+            window.onafterprint = null; // Clear the handler
         };
+    };
+
+    // Helper function to render text with line breaks
+    const renderWithLineBreaks = (text: string | undefined | null, loadingText: string = 'Loading...') => {
+        if (!text) {
+            return loadingText;
+        }
+        return text.split('\n').map((line, index, array) => (
+            <React.Fragment key={index}>
+                {line}
+                {index < array.length - 1 && <br />}
+            </React.Fragment>
+        ));
     };
 
     return (
@@ -53,9 +66,9 @@ const ReportPage: FC = () => {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto space-y-8">
                 {/* Two Column Layout */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left Column - English */}
                     <div className="bg-white rounded-lg shadow-lg p-6">
                         <h2 className="text-2xl font-semibold text-gray-900 mb-4">
@@ -64,14 +77,8 @@ const ReportPage: FC = () => {
                         <div className="space-y-4">
                             <div className="border-b pb-4">
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Report</h3>
-                                <p className="text-gray-600">
-                                    {reportData?.report_in_english || 'Loading...'}
-                                </p>
-                            </div>
-                            <div className="border-b pb-4">
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Follow-up Questions</h3>
-                                <p className="text-gray-600">
-                                    {reportData?.follow_up_questions || 'Loading...'}
+                                <p className="text-gray-600 whitespace-pre-line"> {/* Alternatively, use CSS whitespace-pre-line OR the helper function */}
+                                    {renderWithLineBreaks(reportData?.report_in_english, 'Loading...')}
                                 </p>
                             </div>
                         </div>
@@ -86,10 +93,22 @@ const ReportPage: FC = () => {
                             <div className="border-b pb-4">
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Informe</h3>
                                 <p className="text-gray-600">
-                                    {reportData?.report_in_spanish || 'Cargando...'}
+                                    {renderWithLineBreaks(reportData?.report_in_spanish, 'Cargando...')}
                                 </p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Follow-up Questions Card */}
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                        Follow-up Questions
+                    </h2>
+                    <div className="space-y-4">
+                        <p className="text-gray-600">
+                            {renderWithLineBreaks(reportData?.follow_up_questions, 'Loading...')}
+                        </p>
                     </div>
                 </div>
 
@@ -99,7 +118,7 @@ const ReportPage: FC = () => {
                         <h2 className="text-2xl font-semibold text-gray-900 mb-4">
                             Additional Modifications
                         </h2>
-                        <form className="space-y-4">
+                        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}> {/* Added preventDefault for clarity as there's no submit handler */}
                             <div>
                                 <label htmlFor="modification" className="block text-sm font-medium text-gray-700 mb-2">
                                     Specify any additional modifications or notes
@@ -116,7 +135,7 @@ const ReportPage: FC = () => {
                             </div>
                             <div className="flex justify-end">
                                 <button
-                                    type="submit"
+                                    type="submit" // This button currently doesn't do anything with the 'modification' state
                                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
                                 >
                                     Process Changes
