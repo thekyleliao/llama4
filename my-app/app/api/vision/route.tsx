@@ -140,10 +140,10 @@ export async function POST(request: NextRequest) {
     const prompt = `These images show ${document_type} assignments marked by a teacher. 
     The errors are marked in red by the teacher. 
     Find recurring themes in errors and suggest concrete follow up questions in ${language}. 
-    Write two reports for the parent, one in ${language} and one in English. 
+    Write two reports for the parent, one in ${language} translated and one in English. 
     Sign as your teacher ${teacher_name}. 
     In reports refer to images as ${document_type} assignments. 
-    When relevant, provide simple illustrative explanations in ${language} for the parent to understand the errors.
+    When relevant, provide additional simple illustrative explanations in ${language} for the parent to understand the errors.
     
     Additional Information:
     | Grade: ${grade}

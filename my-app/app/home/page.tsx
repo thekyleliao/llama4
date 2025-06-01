@@ -497,6 +497,35 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        {/* About Section */}
+        <div className="bg-white rounded-lg shadow-md p-6 mt-12 w-full mx-auto border-2 border-blue-200">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-blue-600">About Parent Bridge</h2>
+            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold text-sm">
+              ℹ️ Information
+            </div>
+          </div>
+          <div className="prose prose-blue max-w-none">
+            <p className="text-gray-700 mb-4">
+              Parent Bridge is a powerful tool designed to enhance communication between teachers and parents about student progress. 
+              Our platform makes it easy to document, share, and track educational achievements and areas for improvement.
+            </p>
+            <p className="text-gray-700 mb-4">
+              Key Features:
+            </p>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
+              <li>Upload and document student assignments and progress</li>
+              <li>Generate detailed reports in both English and Spanish</li>
+              <li>Track progress over time with weekly summaries</li>
+              <li>Receive personalized follow-up questions for continued improvement</li>
+              <li>Easy-to-use interface for both teachers and parents</li>
+            </ul>
+            <p className="text-gray-700">
+              Get started by uploading your first assignment using the camera above, or create a new report to document student progress.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
