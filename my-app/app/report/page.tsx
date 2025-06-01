@@ -1,10 +1,33 @@
 "use client"
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 const ReportPage: FC = () => {
     const [modification, setModification] = useState('');
     const [isPrinting, setIsPrinting] = useState(false);
+    const [reportData, setReportData] = useState<any>(null);
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const data = searchParams.get('data');
+        console.log('Raw data from URL:', data);
+        
+        if (data) {
+            try {
+                const parsedData = JSON.parse(data);
+                console.log('Parsed data:', parsedData);
+                console.log('English report:', parsedData.report_in_english);
+                console.log('Spanish report:', parsedData.report_in_spanish);
+                console.log('Follow-up questions:', parsedData.follow_up_questions);
+                setReportData(parsedData);
+            } catch (error) {
+                console.error('Error parsing data:', error);
+            }
+        } else {
+            console.log('No data found in URL parameters');
+        }
+    }, [searchParams]);
 
     const handlePrint = () => {
         setIsPrinting(true);
@@ -33,67 +56,37 @@ const ReportPage: FC = () => {
             <div className="max-w-7xl mx-auto">
                 {/* Two Column Layout */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                    {/* Left Column - Language 1 */}
+                    {/* Left Column - English */}
                     <div className="bg-white rounded-lg shadow-lg p-6">
                         <h2 className="text-2xl font-semibold text-gray-900 mb-4">
                             English
                         </h2>
                         <div className="space-y-4">
                             <div className="border-b pb-4">
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Academic Progress</h3>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Report</h3>
                                 <p className="text-gray-600">
-                                    The student has shown significant improvement in mathematics and reading comprehension.
-                                    Their participation in class discussions has increased, demonstrating better engagement
-                                    with the material.
+                                    {reportData?.report_in_english || 'Loading...'}
                                 </p>
                             </div>
                             <div className="border-b pb-4">
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Areas of Strength</h3>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Follow-up Questions</h3>
                                 <p className="text-gray-600">
-                                    • Strong problem-solving skills<br />
-                                    • Excellent teamwork abilities<br />
-                                    • Consistent homework completion
-                                </p>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Areas for Growth</h3>
-                                <p className="text-gray-600">
-                                    • Time management during tests<br />
-                                    • Organization of study materials<br />
-                                    • Participation in group activities
+                                    {reportData?.follow_up_questions || 'Loading...'}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Column - Language 2 */}
+                    {/* Right Column - Spanish */}
                     <div className="bg-white rounded-lg shadow-lg p-6">
                         <h2 className="text-2xl font-semibold text-gray-900 mb-4">
                             Español
                         </h2>
                         <div className="space-y-4">
                             <div className="border-b pb-4">
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Progreso Académico</h3>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Informe</h3>
                                 <p className="text-gray-600">
-                                    El estudiante ha mostrado una mejora significativa en matemáticas y comprensión lectora.
-                                    Su participación en las discusiones de clase ha aumentado, demostrando un mejor
-                                    compromiso con el material.
-                                </p>
-                            </div>
-                            <div className="border-b pb-4">
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Áreas de Fortaleza</h3>
-                                <p className="text-gray-600">
-                                    • Fuertes habilidades de resolución de problemas<br />
-                                    • Excelentes habilidades de trabajo en equipo<br />
-                                    • Completación consistente de tareas
-                                </p>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Áreas de Mejora</h3>
-                                <p className="text-gray-600">
-                                    • Gestión del tiempo durante los exámenes<br />
-                                    • Organización de materiales de estudio<br />
-                                    • Participación en actividades grupales
+                                    {reportData?.report_in_spanish || 'Cargando...'}
                                 </p>
                             </div>
                         </div>

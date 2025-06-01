@@ -1,5 +1,9 @@
+'use client';
+
 import { FC } from 'react';
 import Link from 'next/link';
+import CameraInput from '../web-input/camera';
+import { useRouter } from 'next/navigation';
 
 // Types for our week data
 interface WeekData {
@@ -37,6 +41,20 @@ const weekData: WeekData[] = [
 
 // Week Card Component
 const WeekCard: FC<WeekData> = ({ weekNumber, subtitle, topicStudied, culturalNotes, exp }) => {
+  if (weekNumber === 3) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-blue-600">Week {weekNumber}</h2>
+          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">
+            {exp} EXP
+          </div>
+        </div>
+        <CameraInput />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto">
       <div className="flex justify-between items-center mb-4">
@@ -64,6 +82,29 @@ const WeekCard: FC<WeekData> = ({ weekNumber, subtitle, topicStudied, culturalNo
 };
 
 export default function Home() {
+  const router = useRouter();
+
+  const handleCreateReport = async () => {
+    try {
+      const response = await fetch('/api/vision');
+      const data = await response.json();
+      console.log('Vision API response:', data);
+      
+      // Ensure we have the expected data structure
+      if (!data.report_in_english || !data.report_in_spanish || !data.follow_up_questions) {
+        console.error('Missing required data fields:', data);
+        return;
+      }
+
+      const encodedData = encodeURIComponent(JSON.stringify(data));
+      console.log('Encoded data for URL:', encodedData);
+      
+      router.push(`/report?data=${encodedData}`);
+    } catch (error) {
+      console.error('Error fetching vision data:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -77,12 +118,12 @@ export default function Home() {
           ))}
         </div>
         <div className="text-center mt-8">
-          <Link 
-            href="/main" 
+          <button 
+            onClick={handleCreateReport}
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
           >
             Create New Report →
-          </Link>
+          </button>
         </div>
       </div>
     </div>

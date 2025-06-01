@@ -13,125 +13,154 @@ const llamaapi = new LlamaAPIClient();
 
 // --- Helper Function ---
 async function fileToDataUrl(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  const base64 = buffer.toString('base64');
-  const mimeType = file.type || 'image/jpeg'; // Default to jpeg if type is not provided
-  return `data:${mimeType};base64,${base64}`;
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const base64 = buffer.toString('base64');
+  const mimeType = file.type || 'image/jpeg'; // Default to jpeg if type is not provided
+  return `data:${mimeType};base64,${base64}`;
 }
 
 // --- GET Handler ---
 const defaultMessagesForGET: Message[] = [
-  {
-    role: 'system',
-    content: 'Format the response according to the provided JSON format',
-  },
-  {
-    role: 'user',
-    content: [
-      {
-        type: 'text',
-        text: 'These three images show homework assignments marked by a teacher. The errors are marked in red by the teacher. Find recurring themes in errors and suggest concrete follow up questions. Write two reports for the parent, one in Spanish and one in English. Sign as your teacher Mr John Doe. In reports refer to images as homework assigments.',
-      },
-      {
-        type: 'image_url',
-        image_url: {
-          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page1.jpg'
-        },
-      },
-      {
-        type: 'image_url',
-        image_url: {
-          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page2.jpg'
-        },
-      },
-      {
-        type: 'image_url',
-        image_url: {
-          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page3.jpg'
-        },
-      },
-    ],
-  },
+  {
+    role: 'system',
+    content: 'Format the response according to the provided JSON format',
+  },
+  {
+    role: 'user',
+    content: [
+      {
+        type: 'text',
+        text: 'These three images show homework assignments marked by a teacher. The errors are marked in red by the teacher. Find recurring themes in errors and suggest concrete follow up questions. Write two reports for the parent, one in Spanish and one in English. Sign as your teacher Mr John Doe. In reports refer to images as homework assigments.',
+      },
+      {
+        type: 'image_url',
+        image_url: {
+          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page1.jpg'
+        },
+      },
+      {
+        type: 'image_url',
+        image_url: {
+          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page2.jpg'
+        },
+      },
+      {
+        type: 'image_url',
+        image_url: {
+          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page3.jpg'
+        },
+      },
+    ],
+  },
 ];
 
 export async function GET(request: NextRequest) {
-  try {
-    const messages = defaultMessagesForGET;
-    const completion = await llamaapi.chat.completions.create({
-      model: LLAMA_API_MODEL,
-      messages: messages,
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'HomeworkAnalysis',
-          schema: {
-            type: 'object',
-            properties: {
-              report_in_spanish: {
-                type: 'string',
-                description: 'report for parents in Spanish',
-              },
-              report_in_english: {
-                type: 'string',
-                description: 'report for teacher in English'
-              },
-              follow_up_questions: {
-                type: 'string',
-                description: 'follow up questions for student to improve their understanding'
-              }
-            },
-            required: ['report_in_spanish', 'report_in_english', 'follow_up_questions']
-          }
-        }
-      }
-    });
-    return NextResponse.json(completion);
-  } catch (error) {
-    console.error('GET /api/vision Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: 'Failed to fetch vision completion via GET.', details: errorMessage }, { status: 500 });
-  }
+  try {
+    const messages = defaultMessagesForGET;
+    const completion = await llamaapi.chat.completions.create({
+      model: LLAMA_API_MODEL,
+      messages: messages,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'HomeworkAnalysis',
+          schema: {
+            type: 'object',
+            properties: {
+              report_in_spanish: {
+                type: 'string',
+                description: 'report for parents in Spanish',
+              },
+              report_in_english: {
+                type: 'string',
+                description: 'report for teacher in English'
+              },
+              follow_up_questions: {
+                type: 'string',
+                description: 'follow up questions for student to improve their understanding'
+              }
+            },
+            required: ['report_in_spanish', 'report_in_english', 'follow_up_questions']
+          }
+        }
+      }
+    });
+
+    const content = completion?.completion_message?.content;
+
+    if (content && typeof content === 'object' && 'text' in content && typeof content.text === 'string') {
+      // --- MODIFICATION START ---
+      // Trust the LLM's output string (content.text) to be the exact JSON response body.
+      // Send this string directly with the application/json content type.
+      // This avoids parsing the string into a JavaScript object and then re-serializing it.
+      return new Response(content.text, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      // --- MODIFICATION END ---
+    } else {
+      console.error('Unexpected Llama API response structure:', completion);
+      return NextResponse.json({
+        error: 'Unexpected response structure from Llama API when expecting JSON string.',
+        details: 'The completion_message.content.text field was not found or was not a string as expected.'
+      }, { status: 500 });
+    }
+  } catch (error) {
+    console.error('GET /api/vision Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: 'Failed to fetch vision completion via GET.', details: errorMessage }, { status: 500 });
+  }
 }
 
 // --- POST Handler ---
+// (Keep your POST handler as is, or apply similar logic if it also uses response_format with json_schema
+// and you want to send its stringified JSON output directly)
 export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData();
-    const imageFile = formData.get('imageFile') as File | null;
-    const prompt = formData.get('prompt') as string | null;
+  try {
+    const formData = await request.formData();
+    const imageFile = formData.get('imageFile') as File | null;
+    const prompt = formData.get('prompt') as string | null;
 
-    // Validate inputs
-    if (!imageFile) {
-      return NextResponse.json({ error: 'Image file ("imageFile") is required in form data.' }, { status: 400 });
-    }
-    if (!prompt) {
-      return NextResponse.json({ error: 'Text prompt ("prompt") is required in form data.' }, { status: 400 });
-    }
+    if (!imageFile) {
+      return NextResponse.json({ error: 'Image file ("imageFile") is required in form data.' }, { status: 400 });
+    }
+    if (!prompt) {
+      return NextResponse.json({ error: 'Text prompt ("prompt") is required in form data.' }, { status: 400 });
+    }
 
-    // Process image and construct messages
-    const imageDataUrl = await fileToDataUrl(imageFile);
-    const messages: Message[] = [
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt },
-          { type: 'image_url', image_url: { url: imageDataUrl } },
-        ],
-      },
-    ];
+    const imageDataUrl = await fileToDataUrl(imageFile);
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: imageDataUrl } },
+        ],
+      },
+    ];
 
-    // Call LlamaAPI
-    const completion = await llamaapi.chat.completions.create({
-      model: LLAMA_API_MODEL,
-      messages: messages,
-    });
+    const completion = await llamaapi.chat.completions.create({
+      model: LLAMA_API_MODEL,
+      messages: messages,
+    });
 
-    return NextResponse.json(completion);
-  } catch (error) {
-    console.error('POST /api/vision Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    // Differentiate between client-side input errors (already handled) and server-side issues
-    return NextResponse.json({ error: 'Failed to process vision request via POST.', details: errorMessage }, { status: 500 });
-  }
+    // If you were to use response_format: { type: 'json_schema', ... } here
+    // and wanted to send the raw string:
+    // const postContent = completion?.completion_message?.content;
+    // if (postContent && typeof postContent === 'object' && 'text' in postContent && typeof postContent.text === 'string') {
+    //   return new Response(postContent.text, {
+    //     status: 200,
+    //     headers: { 'Content-Type': 'application/json' },
+    //   });
+    // }
+
+    return NextResponse.json(completion); // Default behavior for POST if not expecting specific JSON string output
+  } catch (error) {
+    console.error('POST /api/vision Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: 'Failed to process vision request via POST.', details: errorMessage }, { status: 500 });
+  }
 }
