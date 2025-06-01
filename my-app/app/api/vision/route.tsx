@@ -32,7 +32,7 @@ const defaultMessagesForGET: Message[] = [
     content: [
       {
         type: 'text',
-        text: 'These three images show homework assignments marked by a teacher. The errors are marked in red by the teacher. Find recurring themes in errors and suggest concrete follow up questions. Write two reports for the parent, one in Spanish and one in English. Sign as your teacher Mr John Doe. In reports refer to images as homework assigments.',
+        text: 'These three images show homework assignments marked by a teacher. The errors are marked in red by the teacher. Find recurring themes in errors and suggest concrete follow up questions. Write two reports for the parent, one in Spanish and one in English. Sign as your teacher Mr John Doe. In reports refer to images as homework assignments.',
       },
       {
         type: 'image_url',
