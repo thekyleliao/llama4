@@ -6,11 +6,12 @@ import { uploadToSupabaseClient } from '../db/utils'
 const CameraInput: React.FC = () => {
     // Reference to the video element and state for the media stream
     const videoRef = useRef<HTMLVideoElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [isVideoActive, setIsVideoActive] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
-    const [uploadSuccess, setUploadSuccess] = useState(false); // Add success state
-    const [isUploading, setIsUploading] = useState(false); // Add uploading state
+    const [uploadSuccess, setUploadSuccess] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Function to start the camera
     const startCamera = async () => {
@@ -67,6 +68,20 @@ const CameraInput: React.FC = () => {
             }
         }
     }
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result;
+                if (typeof result === 'string') {
+                    setCapturedImage(result);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleUpload = async () => {
         if (!capturedImage) return;
@@ -170,12 +185,29 @@ const CameraInput: React.FC = () => {
             
             <div className="flex space-x-4">
                 {!isVideoActive && !capturedImage ? (
-                    <button 
-                        onClick={startCamera}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
-                    >
-                        Start Camera
-                    </button>
+                    <div className="flex space-x-4">
+                        <button 
+                            onClick={startCamera}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Start Camera
+                        </button>
+                        <div className="relative">
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileSelect}
+                                accept="image/*"
+                                className="hidden"
+                            />
+                            <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
+                            >
+                                Choose File
+                            </button>
+                        </div>
+                    </div>
                 ) : isVideoActive && !capturedImage ? (
                     <button 
                         onClick={takePicture}

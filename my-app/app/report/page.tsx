@@ -190,19 +190,6 @@ const ReportContent: FC = () => {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Student Information</h3>
-                                <dl className="space-y-2">
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">Student Name</dt>
-                                        <dd className="text-gray-900">{reportData.metadata.child_name}</dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-gray-500">Grade</dt>
-                                        <dd className="text-gray-900">{reportData.metadata.grade}</dd>
-                                    </div>
-                                </dl>
-                            </div>
-                            <div>
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Document Information</h3>
                                 <dl className="space-y-2">
                                     <div>
@@ -220,6 +207,19 @@ const ReportContent: FC = () => {
                                     <div>
                                         <dt className="text-sm font-medium text-gray-500">Purpose</dt>
                                         <dd className="text-gray-900 capitalize">{reportData.metadata.document_purpose}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Student Information</h3>
+                                <dl className="space-y-2">
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">Student Name</dt>
+                                        <dd className="text-gray-900">{reportData.metadata.child_name}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">Grade</dt>
+                                        <dd className="text-gray-900">{reportData.metadata.grade}</dd>
                                     </div>
                                 </dl>
                             </div>

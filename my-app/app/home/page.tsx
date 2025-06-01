@@ -7,7 +7,8 @@ import Image from 'next/image';
 import { 
   getFilesFromSupabase, 
   getMondayOfWeek, 
-  formatWeekTitle 
+  formatWeekTitle,
+  deleteFromSupabaseClient 
 } from '../db/utils';
 
 // Updated interface
@@ -211,6 +212,27 @@ const UserInputForm: FC<UserInputFormProps> = ({ formData, onFormChange }) => {
 
 // Week Card Component (simplified)
 const WeekCard: FC<WeekData> = ({ mondayDate, title, files, subtitle }) => {
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (filename: string) => {
+    try {
+      setIsDeleting(filename);
+      const { success, error } = await deleteFromSupabaseClient(filename);
+      if (success) {
+        // Refresh the page to update the list
+        window.location.reload();
+      } else {
+        console.error('Failed to delete file:', error);
+        alert('Failed to delete file. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      alert('An error occurred while deleting the file.');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto">
       <div className="flex justify-between items-center mb-4">
@@ -225,20 +247,39 @@ const WeekCard: FC<WeekData> = ({ mondayDate, title, files, subtitle }) => {
           <h4 className="text-lg font-medium text-gray-700 mb-2">Assignments ({files.length})</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {files.slice(0, 6).map((filename, index) => (
-              <div key={filename} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              <div key={filename} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group">
                 <Image
                   src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/reports/${filename}`}
                   alt={`Assignment ${index + 1}`}
                   fill
                   className="object-cover"
-                  unoptimized // Add this temporarily
+                  unoptimized
                   onError={(e) => {
                     console.error('Image failed to load:', filename);
                     console.error('Full URL:', `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/reports/${filename}`);
-                    // Hide broken image
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
+                {/* Delete button overlay */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button
+                    onClick={() => handleDelete(filename)}
+                    disabled={isDeleting === filename}
+                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors duration-200"
+                    title="Delete image"
+                  >
+                    {isDeleting === filename ? (
+                      <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
             {files.length > 6 && (
@@ -411,7 +452,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 text-center mb-8">
-          Educational Progress
+          Parent Bridge
         </h1>
         
         {/* Camera Card - Always visible at top */}

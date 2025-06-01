@@ -25,6 +25,27 @@ export async function uploadToSupabaseClient(file: Blob, fileName: string, bucke
   return { data, publicUrl, error: null }
 }
 
+// Client-side delete file from Supabase storage function
+export async function deleteFromSupabaseClient(fileName: string, bucket: string = 'reports') {
+  const supabase = createBrowserClient()
+  
+  try {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([fileName])
+
+    if (error) {
+      console.error('Error deleting file:', error)
+      return { success: false, error }
+    }
+
+    return { success: true, error: null }
+  } catch (error) {
+    console.error('Unexpected error deleting file:', error)
+    return { success: false, error }
+  }
+}
+
 // Client-side download file from Supabase storage function
 export async function getFilesFromSupabase(bucket: string = 'reports') {
   const supabase = createBrowserClient()
