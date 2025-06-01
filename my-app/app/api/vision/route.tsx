@@ -23,12 +23,33 @@ async function fileToDataUrl(file: File): Promise<string> {
 // --- GET Handler ---
 const defaultMessagesForGET: Message[] = [
   {
+    role: 'system',
+    content: 'Format the response according to the provided JSON format',
+  },
+  {
     role: 'user',
     content: [
-      { type: 'text', text: 'Describe this image.' },
+      {
+        type: 'text',
+        text: 'These three images show homework assignments marked by a teacher. The errors are marked in red by the teacher. Find recurring themes in errors and suggest concrete follow up questions. Write two reports for the parent, one in Spanish and one in English. Sign as your teacher Mr John Doe. In reports refer to images as homework assigments.',
+      },
       {
         type: 'image_url',
-        image_url: { url: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png' },
+        image_url: {
+          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page1.jpg'
+        },
+      },
+      {
+        type: 'image_url',
+        image_url: {
+          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page2.jpg'
+        },
+      },
+      {
+        type: 'image_url',
+        image_url: {
+          url: 'https://raw.githubusercontent.com/thekyleliao/llama4/refs/heads/main/my-app/public/page3.jpg'
+        },
       },
     ],
   },
@@ -36,10 +57,34 @@ const defaultMessagesForGET: Message[] = [
 
 export async function GET(request: NextRequest) {
   try {
-    const messages = defaultMessagesForGET; // Using predefined messages for GET
+    const messages = defaultMessagesForGET;
     const completion = await llamaapi.chat.completions.create({
       model: LLAMA_API_MODEL,
       messages: messages,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'HomeworkAnalysis',
+          schema: {
+            type: 'object',
+            properties: {
+              report_in_spanish: {
+                type: 'string',
+                description: 'report for parents in Spanish',
+              },
+              report_in_english: {
+                type: 'string',
+                description: 'report for teacher in English'
+              },
+              follow_up_questions: {
+                type: 'string',
+                description: 'follow up questions for student to improve their understanding'
+              }
+            },
+            required: ['report_in_spanish', 'report_in_english', 'follow_up_questions']
+          }
+        }
+      }
     });
     return NextResponse.json(completion);
   } catch (error) {
