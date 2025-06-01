@@ -21,6 +21,7 @@ const ReportContent: FC = () => {
                 console.log('English report:', parsedData.report_in_english);
                 console.log('Spanish report:', parsedData.report_in_spanish);
                 console.log('Follow-up questions:', parsedData.follow_up_questions);
+                console.log('Metadata:', parsedData.metadata);
                 setReportData(parsedData);
             } catch (error) {
                 console.error('Error parsing data:', error);
@@ -42,9 +43,9 @@ const ReportContent: FC = () => {
     };
 
     // Helper function to render text with line breaks
-    const renderWithLineBreaks = (text: string | undefined | null, loadingText: string = 'Loading...') => {
+    const renderWithLineBreaks = (text: string | undefined | null) => {
         if (!text) {
-            return loadingText;
+            return 'Loading...';
         }
         return text.split('\n').map((line, index, array) => (
             <React.Fragment key={index}>
@@ -53,6 +54,10 @@ const ReportContent: FC = () => {
             </React.Fragment>
         ));
     };
+
+    // Get language from metadata or default to Spanish
+    const language = reportData?.metadata?.language || 'Spanish';
+    const languageHeading = language === 'Spanish' ? 'Español' : language;
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -68,6 +73,51 @@ const ReportContent: FC = () => {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto space-y-8">
+                {/* Metadata Section - Only shown when metadata is present */}
+                {reportData?.metadata && (
+                    <div className="bg-white rounded-lg shadow-lg p-6">
+                        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                            Report Details
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Student Information</h3>
+                                <dl className="space-y-2">
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">Student Name</dt>
+                                        <dd className="text-gray-900">{reportData.metadata.child_name}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">Grade</dt>
+                                        <dd className="text-gray-900">{reportData.metadata.grade}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Document Information</h3>
+                                <dl className="space-y-2">
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">Teacher</dt>
+                                        <dd className="text-gray-900">{reportData.metadata.teacher_name}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">Parent</dt>
+                                        <dd className="text-gray-900">{reportData.metadata.parent_name}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">Document Type</dt>
+                                        <dd className="text-gray-900 capitalize">{reportData.metadata.document_type}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-sm font-medium text-gray-500">Purpose</dt>
+                                        <dd className="text-gray-900 capitalize">{reportData.metadata.document_purpose}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Two Column Layout */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left Column - English */}
@@ -79,22 +129,22 @@ const ReportContent: FC = () => {
                             <div className="border-b pb-4">
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Report</h3>
                                 <p className="text-gray-600 whitespace-pre-line">
-                                    {renderWithLineBreaks(reportData?.report_in_english, 'Loading...')}
+                                    {renderWithLineBreaks(reportData?.report_in_english)}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Column - Spanish */}
+                    {/* Right Column - Translation */}
                     <div className="bg-white rounded-lg shadow-lg p-6">
                         <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                            Español
+                            Translation
                         </h2>
                         <div className="space-y-4">
                             <div className="border-b pb-4">
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Informe</h3>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Report</h3>
                                 <p className="text-gray-600">
-                                    {renderWithLineBreaks(reportData?.report_in_spanish, 'Cargando...')}
+                                    {renderWithLineBreaks(reportData?.report_in_spanish)}
                                 </p>
                             </div>
                         </div>
@@ -108,7 +158,7 @@ const ReportContent: FC = () => {
                     </h2>
                     <div className="space-y-4">
                         <p className="text-gray-600">
-                            {renderWithLineBreaks(reportData?.follow_up_questions, 'Loading...')}
+                            {renderWithLineBreaks(reportData?.follow_up_questions)}
                         </p>
                     </div>
                 </div>

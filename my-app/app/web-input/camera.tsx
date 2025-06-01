@@ -89,6 +89,10 @@ const CameraInput: React.FC = () => {
             } else {
                 console.log('Photo also saved to Supabase:', data);
                 setUploadSuccess(true);
+                // Add a small delay to show the success animation before refreshing
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         } catch (error) {
             console.error('Error uploading photo:', error);

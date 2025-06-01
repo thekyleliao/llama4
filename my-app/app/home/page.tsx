@@ -49,6 +49,166 @@ const CameraCard: FC = () => {
   );
 };
 
+// User Input Form Component
+interface UserInputFormProps {
+  formData: {
+    language: string;
+    grade: string;
+    teacherName: string;
+    parentName: string;
+    childName: string;
+    purpose: string;
+    type: string;
+  };
+  onFormChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+}
+
+const UserInputForm: FC<UserInputFormProps> = ({ formData, onFormChange }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full mx-auto border-2 border-blue-200">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-blue-600">Report Details</h2>
+        <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold text-sm">
+          📝 Required Information
+        </div>
+      </div>
+      
+      <form className="space-y-6">
+        {/* Language Selection */}
+        <div>
+          <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-1">
+            Specify Language
+          </label>
+          <input
+            type="text"
+            id="language"
+            name="language"
+            value={formData.language}
+            onChange={onFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter language (e.g., English, Spanish, Bilingual)"
+          />
+        </div>
+
+        {/* Dropdowns Section */}
+        {/* Child Grade */}
+        <div>
+          <label htmlFor="grade" className="block text-sm font-medium text-gray-700 mb-1">
+            Child's Grade
+          </label>
+          <select
+            id="grade"
+            name="grade"
+            value={formData.grade}
+            onChange={onFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Select Grade</option>
+            <option value="k">Kindergarten</option>
+            <option value="1">1st Grade</option>
+            <option value="2">2nd Grade</option>
+            <option value="3">3rd Grade</option>
+            <option value="4">4th Grade</option>
+            <option value="5">5th Grade</option>
+            <option value="6">6th Grade</option>
+            <option value="7">7th Grade</option>
+            <option value="8">8th Grade</option>
+          </select>
+        </div>
+
+        {/* Document Purpose */}
+        <div>
+          <label htmlFor="purpose" className="block text-sm font-medium text-gray-700 mb-1">
+            Document Purpose
+          </label>
+          <select
+            id="purpose"
+            name="purpose"
+            value={formData.purpose}
+            onChange={onFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Select Purpose</option>
+            <option value="progress">Progress Report</option>
+            <option value="assessment">Assessment</option>
+            <option value="feedback">General Feedback</option>
+            <option value="improvement">Areas of Improvement</option>
+          </select>
+        </div>
+
+        {/* Document Type */}
+        <div>
+          <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+            Document Type
+          </label>
+          <select
+            id="type"
+            name="type"
+            value={formData.type}
+            onChange={onFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Select Type</option>
+            <option value="homework">Homework</option>
+            <option value="test">Test</option>
+            <option value="project">Project</option>
+            <option value="classwork">Classwork</option>
+          </select>
+        </div>
+
+        {/* Names Section */}
+        {/* Teacher Name */}
+        <div>
+          <label htmlFor="teacherName" className="block text-sm font-medium text-gray-700 mb-1">
+            Teacher Name
+          </label>
+          <input
+            type="text"
+            id="teacherName"
+            name="teacherName"
+            value={formData.teacherName}
+            onChange={onFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter teacher's name"
+          />
+        </div>
+
+        {/* Parent Name */}
+        <div>
+          <label htmlFor="parentName" className="block text-sm font-medium text-gray-700 mb-1">
+            Parent Name
+          </label>
+          <input
+            type="text"
+            id="parentName"
+            name="parentName"
+            value={formData.parentName}
+            onChange={onFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter parent's name"
+          />
+        </div>
+
+        {/* Child Name */}
+        <div>
+          <label htmlFor="childName" className="block text-sm font-medium text-gray-700 mb-1">
+            Child Name
+          </label>
+          <input
+            type="text"
+            id="childName"
+            name="childName"
+            value={formData.childName}
+            onChange={onFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter child's name"
+          />
+        </div>
+      </form>
+    </div>
+  );
+};
+
 // Week Card Component (simplified)
 const WeekCard: FC<WeekData> = ({ mondayDate, title, files, subtitle }) => {
   return (
@@ -97,6 +257,82 @@ export default function Home() {
   const router = useRouter();
   const [weekData, setWeekData] = useState<WeekData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    language: '',
+    grade: '',
+    teacherName: '',
+    parentName: '',
+    childName: '',
+    purpose: '',
+    type: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const isFormValid = () => {
+    return (
+      formData.language.trim() !== '' &&
+      formData.grade !== '' &&
+      formData.teacherName.trim() !== '' &&
+      formData.parentName.trim() !== '' &&
+      formData.childName.trim() !== '' &&
+      formData.purpose !== '' &&
+      formData.type !== ''
+    );
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleNewReport = async () => {
+    if (!isFormValid()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/vision', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          language: formData.language,
+          grade: formData.grade,
+          teacher_name: formData.teacherName,
+          parent_name: formData.parentName,
+          child_name: formData.childName,
+          document_type: formData.type,
+          document_purpose: formData.purpose
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create report');
+      }
+
+      const data = await response.json();
+      console.log('Vision API response:', data);
+
+      if (!data.report_in_english || !data.report_in_spanish || !data.follow_up_questions) {
+        throw new Error('Invalid API response structure');
+      }
+
+      // Encode the data and pass it to the report page
+      const encodedData = encodeURIComponent(JSON.stringify(data));
+      router.push(`/report?data=${encodedData}`);
+    } catch (error) {
+      console.error('Error creating new report:', error);
+      // TODO: Add error handling UI
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     loadWeeksFromSupabase();
@@ -142,7 +378,7 @@ export default function Home() {
     }
   };
 
-  const handleCreateReport = async () => {
+  const handleTestReport = async () => {
     try {
       const response = await fetch('/api/vision');
       const data = await response.json();
@@ -181,6 +417,32 @@ export default function Home() {
         {/* Camera Card - Always visible at top */}
         <CameraCard />
         
+        {/* Create Report Button */}
+        <div className="text-center mb-8 space-y-4">
+          <button 
+            onClick={handleNewReport}
+            disabled={!isFormValid() || isSubmitting}
+            className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white ${
+              isFormValid() && !isSubmitting
+                ? 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' 
+                : 'bg-gray-400 cursor-not-allowed'
+            } focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200`}
+          >
+            {isSubmitting ? 'Creating Report...' : 'Create New Report →'}
+          </button>
+          <div>
+            <button 
+              onClick={handleTestReport}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+            >
+              Test Report →
+            </button>
+          </div>
+        </div>
+        
+        {/* User Input Form */}
+        <UserInputForm formData={formData} onFormChange={handleFormChange} />
+        
         {/* Week Data Cards */}
         {weekData.length === 0 ? (
           <div className="text-center py-12">
@@ -194,15 +456,6 @@ export default function Home() {
             ))}
           </div>
         )}
-        
-        <div className="text-center mt-8">
-          <button 
-            onClick={handleCreateReport}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-          >
-            Create New Report →
-          </button>
-        </div>
       </div>
     </div>
   );

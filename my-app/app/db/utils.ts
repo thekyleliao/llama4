@@ -29,19 +29,40 @@ export async function uploadToSupabaseClient(file: Blob, fileName: string, bucke
 export async function getFilesFromSupabase(bucket: string = 'reports') {
   const supabase = createBrowserClient()
   
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .list('', {
-      limit: 100,
-      sortBy: { column: 'name', order: 'asc' }
+  try {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .list('', {
+        limit: 100,
+        sortBy: { column: 'name', order: 'asc' }
+      })
+
+    if (error) {
+      console.error('Error fetching files:', error)
+      return []
+    }
+
+    // Filter out non-image files and hidden files
+    const validFiles = (data || []).filter(file => {
+      // Skip hidden files and empty folder placeholders
+      if (file.name.startsWith('.') || file.name.includes('emptyFolderPlaceholder')) {
+        return false
+      }
+
+      // Check if file is an image by extension
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+      const hasImageExtension = imageExtensions.some(ext => 
+        file.name.toLowerCase().endsWith(ext)
+      )
+
+      return hasImageExtension
     })
 
-  if (error) {
-    console.error('Error fetching files:', error)
+    return validFiles
+  } catch (error) {
+    console.error('Unexpected error fetching files:', error)
     return []
   }
-
-  return data || []
 }
 
 // Get the Monday of the week for a given date
