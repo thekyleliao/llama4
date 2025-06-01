@@ -1,6 +1,7 @@
 "use client"
 
 import React, {useRef, useState} from "react";
+import { uploadToSupabaseClient } from '../db/utils'
 
 const CameraInput: React.FC = () => {
     // Reference to the video element and state for the media stream
@@ -76,19 +77,14 @@ const CameraInput: React.FC = () => {
             const formData = new FormData();
             formData.append('photo', blob, 'captured-photo.jpg');
 
-            // Send to your API endpoint
-            const uploadResponse = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error('Upload failed');
+            // Upload to Supabase
+            const fileName = `assignment-${Date.now()}.jpg`;
+            const { data, error } = await uploadToSupabaseClient(blob, fileName);
+            if (error) {
+            console.warn('Supabase upload failed:', error.message);
+            } else {
+                console.log('Photo also saved to Supabase:', data);
             }
-
-            // Handle successful upload
-            console.log('Photo uploaded successfully');
-            // You can add additional success handling here
         } catch (error) {
             console.error('Error uploading photo:', error);
             // You can add error handling UI feedback here
