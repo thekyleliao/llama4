@@ -5,9 +5,12 @@ import { useSearchParams } from 'next/navigation';
 
 // Separate client component for the content
 const ReportContent: FC = () => {
-    const [modification, setModification] = useState('');
     const [isPrinting, setIsPrinting] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedEnglishReport, setEditedEnglishReport] = useState('');
+    const [editedSpanishReport, setEditedSpanishReport] = useState('');
     const searchParams = useSearchParams();
 
     useEffect(() => {
@@ -23,6 +26,8 @@ const ReportContent: FC = () => {
                 console.log('Follow-up questions:', parsedData.follow_up_questions);
                 console.log('Metadata:', parsedData.metadata);
                 setReportData(parsedData);
+                setEditedEnglishReport(parsedData.report_in_english);
+                setEditedSpanishReport(parsedData.report_in_spanish);
             } catch (error) {
                 console.error('Error parsing data:', error);
             }
@@ -33,13 +38,71 @@ const ReportContent: FC = () => {
 
     const handlePrint = () => {
         setIsPrinting(true);
+        // Add print-specific styles
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @media print {
+                /* Hide elements we don't want to print */
+                button, 
+                .no-print {
+                    display: none !important;
+                }
+                /* Remove background colors for better printing */
+                body {
+                    background: white !important;
+                }
+                /* Ensure content takes full width */
+                .max-w-7xl {
+                    max-width: none !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                /* Remove shadows and adjust spacing for print */
+                .shadow-lg {
+                    box-shadow: none !important;
+                }
+                .p-6 {
+                    padding: 1rem !important;
+                }
+                /* Ensure text is black for better printing */
+                .text-gray-600, .text-gray-900 {
+                    color: black !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
         setTimeout(() => {
             window.print();
+            // Clean up after printing
+            document.head.removeChild(style);
+            setIsPrinting(false);
         }, 0);
+        
         window.onafterprint = () => {
             setIsPrinting(false);
-            window.onafterprint = null; // Clear the handler
+            window.onafterprint = null;
         };
+    };
+
+    const handleEdit = () => {
+        setIsEditing(!isEditing);
+    };
+
+    const handleSave = () => {
+        if (reportData) {
+            const updatedData = {
+                ...reportData,
+                report_in_english: editedEnglishReport,
+                report_in_spanish: editedSpanishReport
+            };
+            setReportData(updatedData);
+            // Update URL with new data
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('data', JSON.stringify(updatedData));
+            window.history.pushState({}, '', newUrl.toString());
+        }
+        setIsEditing(false);
     };
 
     // Helper function to render text with line breaks
@@ -73,6 +136,52 @@ const ReportContent: FC = () => {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto space-y-8">
+                {/* Error Message */}
+                {error && (
+                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm text-red-700">{error}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-4 mb-6">
+                    <button
+                        onClick={handleEdit}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                        {isEditing ? 'Cancel' : 'Edit'}
+                    </button>
+                    {isEditing && (
+                        <button
+                            onClick={handleSave}
+                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                        >
+                            Save
+                        </button>
+                    )}
+                    <button
+                        onClick={handlePrint}
+                        className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                        Print
+                    </button>
+                    <button
+                        onClick={() => window.history.back()}
+                        className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                        Back
+                    </button>
+                </div>
+
                 {/* Metadata Section - Only shown when metadata is present */}
                 {reportData?.metadata && (
                     <div className="bg-white rounded-lg shadow-lg p-6">
@@ -128,9 +237,17 @@ const ReportContent: FC = () => {
                         <div className="space-y-4">
                             <div className="border-b pb-4">
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Report</h3>
-                                <p className="text-gray-600 whitespace-pre-line">
-                                    {renderWithLineBreaks(reportData?.report_in_english)}
-                                </p>
+                                {isEditing ? (
+                                    <textarea
+                                        value={editedEnglishReport}
+                                        onChange={(e) => setEditedEnglishReport(e.target.value)}
+                                        className="w-full h-64 p-2 border rounded"
+                                    />
+                                ) : (
+                                    <p className="text-gray-600 whitespace-pre-line">
+                                        {renderWithLineBreaks(reportData?.report_in_english)}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -143,9 +260,17 @@ const ReportContent: FC = () => {
                         <div className="space-y-4">
                             <div className="border-b pb-4">
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Report</h3>
-                                <p className="text-gray-600">
-                                    {renderWithLineBreaks(reportData?.report_in_spanish)}
-                                </p>
+                                {isEditing ? (
+                                    <textarea
+                                        value={editedSpanishReport}
+                                        onChange={(e) => setEditedSpanishReport(e.target.value)}
+                                        className="w-full h-64 p-2 border rounded"
+                                    />
+                                ) : (
+                                    <p className="text-gray-600">
+                                        {renderWithLineBreaks(reportData?.report_in_spanish)}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -162,46 +287,6 @@ const ReportContent: FC = () => {
                         </p>
                     </div>
                 </div>
-
-                {/* Modification Form */}
-                {!isPrinting && (
-                    <div className="bg-white rounded-lg shadow-lg p-6">
-                        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                            Additional Modifications
-                        </h2>
-                        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                            <div>
-                                <label htmlFor="modification" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Specify any additional modifications or notes
-                                </label>
-                                <textarea
-                                    id="modification"
-                                    name="modification"
-                                    rows={4}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Enter any additional modifications or notes here..."
-                                    value={modification}
-                                    onChange={(e) => setModification(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
-                                >
-                                    Process Changes
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handlePrint}
-                                    className="ml-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105"
-                                >
-                                    Print
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
             </div>
         </div>
     );
