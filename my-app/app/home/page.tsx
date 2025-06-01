@@ -217,9 +217,38 @@ const UserInputForm: FC<UserInputFormProps> = ({ formData, onFormChange }) => {
   );
 };
 
+// Image Modal Component
+const ImageModal: FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => {
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="relative max-w-4xl max-h-[90vh] w-full h-full">
+        <Image
+          src={imageUrl}
+          alt="Enlarged assignment"
+          fill
+          className="object-contain"
+          unoptimized
+        />
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-opacity"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Week Card Component (simplified)
 const WeekCard: FC<WeekData> = ({ mondayDate, title, files, subtitle }) => {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleDelete = async (filename: string) => {
     try {
@@ -254,13 +283,14 @@ const WeekCard: FC<WeekData> = ({ mondayDate, title, files, subtitle }) => {
           <h4 className="text-lg font-medium text-gray-700 mb-2">Assignments ({files.length})</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {files.slice(0, 6).map((filename, index) => (
-              <div key={filename} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group">
+              <div key={filename} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-pointer">
                 <Image
                   src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/reports/${filename}`}
                   alt={`Assignment ${index + 1}`}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-200 group-hover:scale-105"
                   unoptimized
+                  onClick={() => setSelectedImage(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/reports/${filename}`)}
                   onError={(e) => {
                     console.error('Image failed to load:', filename);
                     console.error('Full URL:', `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/reports/${filename}`);
@@ -270,7 +300,10 @@ const WeekCard: FC<WeekData> = ({ mondayDate, title, files, subtitle }) => {
                 {/* Delete button overlay */}
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <button
-                    onClick={() => handleDelete(filename)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(filename);
+                    }}
                     disabled={isDeleting === filename}
                     className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors duration-200"
                     title="Delete image"
@@ -296,6 +329,14 @@ const WeekCard: FC<WeekData> = ({ mondayDate, title, files, subtitle }) => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <ImageModal
+          imageUrl={selectedImage}
+          onClose={() => setSelectedImage(null)}
+        />
       )}
     </div>
   );
@@ -523,10 +564,10 @@ export default function Home() {
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
               <li>Upload and document student assignments and progress</li>
-              <li>Generate detailed reports in both English and Spanish</li>
+              <li>Generate detailed reports in both English and Spanish and other languages</li>
               <li>Track progress over time with weekly summaries</li>
               <li>Receive personalized follow-up questions for continued improvement</li>
-              <li>Easy-to-use interface for both teachers and parents</li>
+              <li>Easy-to-use interface for both teachers</li>
             </ul>
             <p className="text-gray-700">
               Get started by uploading your first assignment using the camera above, or create a new report to document student progress.
