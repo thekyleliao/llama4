@@ -152,7 +152,9 @@ export default function Home() {
         throw new Error('Invalid API response structure');
       }
 
-      router.push('/report');
+      // Encode the data and pass it to the report page
+      const encodedData = encodeURIComponent(JSON.stringify(data));
+      router.push(`/report?data=${encodedData}`);
     } catch (error) {
       console.error('Error fetching vision data:', error);
     }
